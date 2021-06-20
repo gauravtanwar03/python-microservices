@@ -1,0 +1,16 @@
+version: '3.7'
+
+services: 
+    movie_db:
+        image: postgres:13-alpine
+        ports: 
+            - 5432:5432
+        volumes: 
+            - postgres_data_movie:/var/lib/postgresql/data/
+        environment: 
+            - POSTGRES_USER=movie_db_username
+            - POSTGRES_PASSWORD=movie_db_password
+            - POSTGRES_DB=movie_db_dev
+
+volumes:
+    postgres_data_movie:
