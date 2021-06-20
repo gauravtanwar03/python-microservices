@@ -40,4 +40,13 @@ async def update_movie(id: int, payload: Movie):
     if 0 <= id <= movies_length:
         fake_movie_db[id] = movie
         return None
-    return HTTPException(status_code=404, detail="Movie with given id not found")
+    raise HTTPException(status_code=404, detail="Movie with given id not found")
+
+
+@app.delete("/{id}")
+async def delete_movie(id: int):
+    movie_length = len(fake_movie_db)
+    if 0 <= id <= movie_length:
+        del fake_movie_db[id]
+        return None
+    raise HTTPException(status_code=404, detail="Movie with given id not found")
