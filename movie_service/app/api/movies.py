@@ -1,46 +1,43 @@
 from typing import List
-from fastapi import Header, APIRouter
+from fastapi import Header, APIRouter, HTTPException
 
-from app.api.models import Movie
+from app.api.models import MovieIn, MovieOut, MovieUpdate
+from app.api import db_manager
 
-fake_movie_db = [
-    {
-        "name": "Avengers: End Game",
-        "plot": "Avengers tries to undo the snap done by Thanos, their greatest enemy!",
-        "genres": ["Action", "Superhero", "SciFi", "Adventure"],
-        "casts": ["Robert Downey Junior"],
-    }
-]
 
 movies = APIRouter()
 
 
-@movies.get("/", response_model=List[Movie])
+@movies.get("/", response_model=List[MovieOut])
 async def index():
-    return fake_movie_db
+    return await db_manager.get_all_movies()
 
 
 @movies.post("/", status_code=201)
-async def add_movie(payload: Movie):
-    movie = payload.dict()
-    fake_movie_db.append(movie)
-    return {"id": len(fake_movie_db) - 1}
+async def add_movie(payload: MovieIn):
+    movie_id = await db_manager.add_movie(payload)
+    response = {"id": movie_id, **payload.dict()}
+
+    return response
 
 
 @movies.put("/{id}")
-async def update_movie(id: int, payload: Movie):
-    movie = payload.dict()
-    movies_length = len(fake_movie_db)
-    if 0 <= id <= movies_length:
-        fake_movie_db[id] = movie
-        return None
-    raise HTTPException(status_code=404, detail="Movie with given id not found")
+async def update_movie(id: int, payload: MovieUpdate):
+    movie = await db_manager.get_movie(id)
+    if not movie:
+        raise HTTPException(status_code=404, detail="Movie not found")
+
+    update_data = payload.dict(exclude_unset=True)
+    movies_in_db = MovieUpdate(**movie)
+
+    update_movie = movies_in_db.copy(update=update_data)
+
+    return await db_manager.update_movies(id, update_movie)
 
 
 @movies.delete("/{id}")
 async def delete_movie(id: int):
-    movie_length = len(fake_movie_db)
-    if 0 <= id <= movie_length:
-        del fake_movie_db[id]
-        return None
-    raise HTTPException(status_code=404, detail="Movie with given id not found")
+    movie = await db_manager.get_movie(id)
+    if not movie:
+        raise HTTPException(status_code=404, detail="Movie not found")
+    return await db_manager.delete_movie(id)
