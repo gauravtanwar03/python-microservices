@@ -1,8 +1,9 @@
+import os
 from sqlalchemy import Column, Integer, MetaData, String, Table, create_engine, ARRAY
 
 from databases import Database
 
-DATABASE_URL = "postgresql://movie_db_username:movie_db_password@localhost/movie_db_dev"
+DATABASE_URL = os.getenv("DATABASE_URI")
 
 engine = create_engine(DATABASE_URL)
 metadata = MetaData()

@@ -1,10 +1,17 @@
 version: '3.7'
 
-services: 
+services:
+    movie_service:
+        build: ./movie_service
+        command: uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+        volumes:
+            - ./movie_service/:/app/
+        ports:
+            - 8000:8000
+        environment: 
+            - DATABASE_URI=postgresql://movie_db_username:movie_db_password@movie_db/movie_db_dev 
     movie_db:
         image: postgres:13-alpine
-        ports: 
-            - 5432:5432
         volumes: 
             - postgres_data_movie:/var/lib/postgresql/data/
         environment: 
